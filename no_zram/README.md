@@ -1,6 +1,7 @@
 This is a script and initrc combo for diabling zram on lineageos 14.2. It was designed to persist after system updates using addon.d. There's this license document there but the goal of putting this here is for everyone to reference or use directly.
 
 To build the package simply
+
 	make
 	or
 	zip -r no_zram.zip system META-INF
