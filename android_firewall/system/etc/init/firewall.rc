@@ -1,0 +1,11 @@
+# firewall
+# written by Katharine Chui in 2017
+# https://github.com/Kethen
+
+service firewall /system/bin/logwrapper /system/etc/firewall.sh
+	class late_start
+	user root
+	group root
+	oneshot
+	seclabel u:r:sudaemon:s0
+	

@@ -1,0 +1,20 @@
+#!/sbin/sh
+PATH=/sbin
+OUTFD="/proc/self/fd/$2"
+ZIP=$3
+echo "ui_print mounting /system" > $OUTFD
+#echo "ui_print debug $ZIP $3" > $OUTFD
+mount /system
+echo "ui_print unloading package into /system" > $OUTFD
+unzip "$ZIP" system/addon.d/51-disable_zram.sh system/etc/init/nozram.rc system/etc/nozram.sh -d /
+echo "ui_print changing selinux contexts" > $OUTFD
+chcon u:object_r:system_file:s0 /system/addon.d/51-disable_zram.sh
+chcon u:object_r:system_file:s0 /system/etc/init/nozram.rc
+chcon u:object_r:system_file:s0 /system/etc/nozram.sh
+echo "ui_print changing permissions" > $OUTFD
+chmod 755 /system/addon.d/51-disable_zram.sh
+chmod 644 /system/etc/init/nozram.rc
+chmod 755 /system/etc/nozram.sh
+echo "ui_print unmounting /system" > $OUTFD
+umount /system
+echo "ui_print done" > $OUTFD

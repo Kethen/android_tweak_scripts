@@ -1,0 +1,10 @@
+# zram-disable
+# written by Katharine Chui in 2017
+# https://github.com/Kethen
+
+service zram-disable /system/bin/logwrapper /system/etc/nozram.sh
+	class late_start
+	oneshot
+	user root
+	group root
+	seclabel u:r:sudaemon:s0
