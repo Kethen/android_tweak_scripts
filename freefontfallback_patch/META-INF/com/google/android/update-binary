@@ -1,0 +1,24 @@
+#!/sbin/sh
+PATH=/sbin
+OUTFD="/proc/self/fd/$2"
+ZIP=$3
+echo "ui_print mounting /system" > $OUTFD
+#echo "ui_print debug $ZIP $3" > $OUTFD
+mount /system
+echo "ui_print unloading package into /system" > $OUTFD
+unzip "$ZIP" 51-freefontpatch.sh -d /system/addon.d/
+unzip "$ZIP" FreeSans.ttf FreeSerif.ttf -d /system/fonts/
+echo "ui_print changing selinux contexts" > $OUTFD
+chcon u:object_r:system_file:s0 /system/addon.d/51-dejavusans.sh
+chcon u:object_r:system_file:s0 /system/fonts/FreeSans.ttf
+chcon u:object_r:system_file:s0 /system/fonts/FreeSerif.ttf
+echo "ui_print changing permissions" > $OUTFD
+chmod 755 /system/addon.d/51-freefontpatch.sh
+chmod 644 /system/fonts/FreeSans.ttf
+chmod 644 /system/fonts/DejaVuSans.ttf
+echo "ui_print changing /system/etc/fonts.xml" > $OUTFD
+sed -i '/<family><font weight="400" style="normal">FreeSans.ttf<\/font><\/family><family><font weight="400" style="normal">FreeSerif.ttf<\/font><\/family>/d' /system/etc/fonts.xml
+sed -i '/<\/familyset>/i <family><font weight=\"400\" style=\"normal\">FreeSans.ttf<\/font><\/family><family><font weight=\"400\" style=\"normal\">FreeSerif.ttf<\/font><\/family>' /system/etc/fonts.xml
+echo "ui_print unmounting /system" > $OUTFD
+umount /system
+echo "ui_print done" > $OUTFD
