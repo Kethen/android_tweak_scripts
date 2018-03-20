@@ -79,39 +79,40 @@ done
 #echo accepted input
 #iptables -t filter -A INPUT -p udp --sport 123 -j ACCEPT
 
-echo running firewall script /data/firewall.sh
-if [ ! -f /data/firewall.sh ]
-then
-	echo "#iptables -t filter -P OUTPUT ACCEPT" > /data/firewall.sh
-fi
-/system/bin/sh /data/firewall.sh
-
 echo setting nameserver
 #using iptables to redirect all DNS requests to a nameserver, no matter what are the dhcp settings
 
 #undo last time's settings
 if [ -f /data/nameserver_last ]; then
 	iptables -t nat -D OUTPUT -p udp --dport 53 -j DNAT --to-destination $(cat /data/nameserver_last):53
+	rm /data/nameserver_last
 fi
+
 
 #first, check if 'nameserver' file is in /data. If not, create an empty one
 #to use custom DNS, fill in make a text file /data/nameserver storing a single IP eg. echo '8.8.8.8' > /data/nameserver
 if [ ! -f /data/nameserver ]; then
-	#echo '' > /data/nameserver
-	#let's just use google by default anyway -scootalootf2
-	echo '8.8.8.8' > /data/nameserver
+	touch /data/nameserver
 fi
 
-#save the collected ip
-cp /data/nameserver /data/nameserver_last
+#check if the nameserver file is empty. If not empty apply the procedures to enable redirection
+if [ "$(cat /data/nameserver)" != "" ]; then
+	#save the collected ip
+	cp /data/nameserver /data/nameserver_last
 
-#change resolv.conf for glibc binaries
-echo 'nameserver '$(cat /data/nameserver) > /data/resolv.conf
+	#change resolv.conf for glibc binaries
+	echo 'nameserver '$(cat /data/nameserver) > /data/resolv.conf
 
-#read nameserver address from file and then apply it
-iptables -t nat -I OUTPUT -p udp --dport 53 -j DNAT --to-destination $(cat /data/nameserver):53
+	#read nameserver address from file and then apply it
+	iptables -t nat -I OUTPUT -p udp --dport 53 -j DNAT --to-destination $(cat /data/nameserver):53
+fi
 
-
+echo running firewall script /data/firewall.sh
+if [ ! -f /data/firewall.sh ]
+then
+	echo "#iptables -t filter -P OUTPUT ACCEPT" > /data/firewall.sh
+fi
+/system/bin/sh /data/firewall.sh
 
 #sleep 180
 #done
