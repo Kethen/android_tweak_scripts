@@ -1,0 +1,30 @@
+#!/sbin/sh
+PATH=/sbin
+OUTFD="/proc/self/fd/$2"
+ZIP=$3
+FONTS_FOLDER=/system/fonts
+FONTS="emojione-android.ttf"
+XML=/system/etc/fonts.xml
+echo "ui_print mounting /system" > $OUTFD
+#echo "ui_print debug $ZIP $3" > $OUTFD
+mount /system
+echo "ui_print unloading package into /system" > $OUTFD
+unzip -o "$ZIP" 51-emojionepatch.sh -d /system/addon.d/
+unzip -o "$ZIP" $FONTS -d $FONTS_FOLDER
+echo "ui_print changing selinux contexts and permissions" > $OUTFD
+chcon u:object_r:system_file:s0 /system/addon.d/51-emojionepatch.sh 
+chmod 755 /system/addon.d/51-emojionepatch.sh
+for f in $FONTS
+do
+	chcon u:object_r:system_file:s0 $FONTS_FOLDER/$f
+	chmod 644 $FONTS_FOLDER/$f
+done
+echo "ui_print changing /system/etc/fonts.xml" > $OUTFD
+for f in $FONTS
+do
+	sed -i "/<font weight=\"400\" style=\"normal\">$f<\/font>/d" $XML
+	sed -i "/<font weight=\"400\" style=\"normal\">NotoColorEmoji.ttf<\/font>/i <font weight=\"400\" style=\"normal\">$f<\/font>" $XML
+done
+echo "ui_print unmounting /system" > $OUTFD
+umount /system
+echo "ui_print done" > $OUTFD
